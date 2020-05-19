@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if category_list %}
+    {% for category in category_list %}
+        <div class="row">
+            <div class="col-3">
+                <a href="{% url 'catalog:subcategory-list' category.slug %}">{{ category.name }}</a>
+            </div>
+            <div class="col-9">
+                {{ category.subcategory.name }}
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    категории не найдены
+{% endif %}
+
+{% endblock %}

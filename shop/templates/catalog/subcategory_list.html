@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if subcategory_list %}
+        {% for subcategory in subcategory_list %}
+            <div class="row">
+                <div class="col-12">
+                    <a href="">{{ subcategory.name }}</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        где-то проебался
+    {% endif %}
+
+{% endblock %}

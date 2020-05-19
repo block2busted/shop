@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('photo', models.ImageField(upload_to='', verbose_name='Фото')),
                 ('in_stock', models.BooleanField(default=True, help_text='Наличие')),
                 ('slug', models.SlugField(max_length=100, unique=True)),
-                ('category', models.ForeignKey(help_text='Категория', on_delete=django.db.models.deletion.CASCADE, to='products.Category')),
+                ('category', models.ForeignKey(help_text='Категория', on_delete=django.db.models.deletion.CASCADE, to='catalog.Category')),
             ],
         ),
     ]

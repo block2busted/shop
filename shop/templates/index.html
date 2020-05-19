@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    Главная страница
-    <a href="{% url 'products:product-list' %}">All products</a>
+    <a href="{% url 'catalog:category-list' %}">Каталог</a>
 {% endblock %}

@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class ProductConfig(AppConfig):
-    name = 'shop.apps.products'
+    name = 'shop.apps.catalog'
