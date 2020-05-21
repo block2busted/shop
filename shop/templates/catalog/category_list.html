@@ -1,19 +1,71 @@
 {% extends 'base.html' %}
 {% block content %}
+    {% load bootstrap4 %}
+{% load mptt_tags %}
 
-{% if category_list %}
-    {% for category in category_list %}
-        <div class="row">
-            <div class="col-3">
-                <a href="{% url 'catalog:subcategory-list' category.slug %}">{{ category.name }}</a>
-            </div>
-            <div class="col-9">
-                {{ category.subcategory.name }}
-            </div>
+    <nav class="navbar navbar-inverse navbar-static-top marginBottom-0" role="navigation">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand">Categories</a>
         </div>
-    {% endfor %}
-{% else %}
-    категории не найдены
-{% endif %}
+
+        <div class="collapse navbar-collapse" id="navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                {% recursetree categories %}
+                    <li class="dropdown side-dropdown">
+                        <a href="{% url 'catalog:category-detail' node.slug %}" class="btn dropdown-toggle"
+                           {% if not node.is_leaf_node %} type="button"
+                           id="dropdownMenuButton" data-toggle="dropdown"
+                           aria-haspopup="true" aria-expanded="false"{% endif %}>
+                            {{ node.name }}
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {% if not node.is_leaf_node %}
+                                        <ul class="list-links">
+                                            <li class="dropdown-item">{{ children }}</li>
+                                        </ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endrecursetree %}
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </nav>
+
+
+    <nav class="nav navbar-nav">
+        <ul class="list-group flex-md-row">
+        <div class="row">
+            {% recursetree categories %}
+                <li {% if node.is_root_node %}class="dropdown btn"{% else %}class="btn"{% endif %}>
+                    <div {% if node.is_root_node %}class="btn dropdown-toggle" type="button"
+                         id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                         aria-expanded="false"{% else %}class="dropdown-item"{% endif %}>
+                        <a {% if not node.is_leaf_node %}href="{% url 'catalog:category-detail' node.slug %}"
+                           {% else %}href="{% url 'catalog:product-list' node.slug %}"{% endif %}>
+                            {{ node.name }}
+                        </a>
+                    </div>
+                        {% if not node.is_leaf_node %}
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                {{ children }}
+                            </ul>
+                            {% elif node.is_child_node %}
+                        {% endif %}
+                </li>
+            {% endrecursetree %}
+        </div>
+        </ul>
+    </nav>
+
 
 {% endblock %}

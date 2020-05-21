@@ -33,8 +33,8 @@ class CategoryDetailView(DetailView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(CategoryDetailView, self).get_context_data()
-        categories = Category.objects.filter(parent__slug=self.object.slug)
-        context['categories'] = categories
+        category_list = Category.objects.filter(parent__slug=self.object.slug)
+        context['category_list'] = category_list
         return context
 
 
