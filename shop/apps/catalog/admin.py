@@ -1,17 +1,10 @@
 from django.contrib import admin
-from .models import Product, Category, Subcategory
-
+from .models import Product, Category
+from mptt.admin import MPTTModelAdmin, DraggableMPTTAdmin
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'price', 'photo', 'slug', 'in_stock', 'subcategory']
+    list_display = ['name', 'category', 'description', 'in_stock', 'price', 'photo', 'slug']
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'slug']
-
-
-@admin.register(Subcategory)
-class SubcategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'description', 'slug']
+admin.site.register(Category, DraggableMPTTAdmin)

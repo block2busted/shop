@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if categories %}
+        <div class="row">
+            <div class="col-6">
+                {% for category in categories %}
+                    <a href="{% url 'catalog:product-list' category.slug %}">{{ category.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        Где-то косяк с подкатегориями
+    {% endif %}
+
+{% endblock %}

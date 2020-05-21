@@ -1,9 +1,9 @@
 from django.db import models
 from django.urls import reverse
 from pytils.translit import slugify
+from mptt.models import MPTTModel, TreeForeignKey
 
-
-class Category(models.Model):
+"""class Category(models.Model):
     name = models.CharField(max_length=55, unique=True, help_text='Название категории')
     description = models.TextField(blank=True, help_text='Описание')
     slug = models.SlugField(unique=True, max_length=100, blank=True)
@@ -41,7 +41,24 @@ class Subcategory(models.Model):
 
     class Meta:
         verbose_name = 'Подкатегория'
-        verbose_name_plural = 'Подкатегории'
+        verbose_name_plural = 'Подкатегории'"""
+
+
+class Category(MPTTModel):
+    name = models.CharField(max_length=50, unique=True)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    slug = models.SlugField(unique=True, max_length=100, blank=True)
+    photo = models.ImageField('Фото', default='default.jpg', blank=True, null=True)
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Category, self).save(*args, **kwargs)
 
 
 class Product(models.Model):
@@ -50,8 +67,9 @@ class Product(models.Model):
     price = models.IntegerField('Цена')
     photo = models.ImageField('Фото', default="default.jpg", blank=True, null=True)
     in_stock = models.BooleanField(default=True, help_text='Наличие')
-    subcategory = models.ForeignKey(Subcategory, default='', on_delete=models.CASCADE, help_text='Категория')
+    #subcategory = models.ForeignKey(Subcategory, default='', on_delete=models.CASCADE, blank=True, help_text='Категория')
     slug = models.SlugField(unique=True, max_length=100, blank=True)
+    category = TreeForeignKey(Category, on_delete=models.SET_NULL, default='', null=True, blank=True)
 
     def __str__(self):
         return self.name

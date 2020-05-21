@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'catalog',
     'pytils',
     'bootstrap4',
+    'mptt'
 ]
 
 MIDDLEWARE = [
@@ -124,4 +125,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
+STATIC_ROOT = 'static'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'shop/static_dev')
+]
 STATIC_URL = '/static/'
+
+
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'

@@ -2,12 +2,15 @@
 
 {% block content %}
 
-    {% for product in product_list %}
-        <div class="row">
-            <div class="col-6">
-                <a href="{% url 'catalog:product-detail' product.slug %}">{{ product.name }}</a>
-            </div>
-        </div>
-    {% endfor %}
+    {% if product_list %}
+        {% for product in product_list %}
+
+            <div>Товар-{{ product.name }}</div>
+            <div>Цена-{{ product.price }}</div>
+
+        {% endfor %}
+    {% else %}
+        Где-то косячок с товарами или их еще нет
+    {% endif %}
 
 {% endblock %}
