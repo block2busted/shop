@@ -11,3 +11,8 @@ def get_family(context):
     categories = category_roots.get_descendants(include_self=True)
     context['categories'] = categories
     return context
+
+
+@register.inclusion_tag('catalog/breadcrumb.html', takes_context=True)
+def get_breadcrumb(context):
+    return context

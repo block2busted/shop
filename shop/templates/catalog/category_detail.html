@@ -1,20 +1,46 @@
 {% extends 'base.html' %}
+{% load catalog_tags %}
+{% load mptt_tags %}
 
 {% block content %}
+    <div class="row">
+        {% get_breadcrumb %}
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <ul>
+                {% recursetree category_list %}
+                    <li>
+                        <div>
+                            <a {% if node.is_leaf_node %}href="{% url 'catalog:product-list' node.slug %}"{% else %}href="{% url 'catalog:category-detail' node.slug %}"{% endif %}>{{ node.name }}</a>
+                        </div>
+                        {% if node.is_child_node %}
+                            <ul class="children">
+                                {{ children }}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endrecursetree %}
+            </ul>
 
-    {% if categories %}
-        <div class="row">
-            <div class="col-6">
-                {% for category in category_list %}
-                    <div>
-                        <a {% if not category.is_leaf_node %}href="{% url 'catalog:category-detail' category.slug %}"
-                            {% else %}href="{% url 'catalog:product-list' category.slug %}"{% endif %}>{{ category.name }}</a>
-                    </div>
-                {% endfor %}
-            </div>
         </div>
-    {% else %}
-        Где-то косяк с подкатегориями
-    {% endif %}
+        <div class="col-9">
+            {% if category_roots %}
+                <div class="row">
+                    <div class="col-6">
+                        {% for category in category_roots %}
+                            <div>
+                                <a {% if not category.is_leaf_node %}href="{% url 'catalog:category-detail' category.slug %}"
+                                   {% else %}href="{% url 'catalog:product-list' category.slug %}"{% endif %}>{{ category.name }}</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                Где-то косяк с подкатегориями
+            {% endif %}
+        </div>
+    </div>
+
 
 {% endblock %}

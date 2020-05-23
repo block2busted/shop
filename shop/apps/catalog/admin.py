@@ -1,11 +1,16 @@
 from django.contrib import admin
-from .models import Product, Category
-from mptt.admin import MPTTModelAdmin, DraggableMPTTAdmin
+from .models import Product, Category, Brand
+from mptt.admin import MPTTModelAdmin, DraggableMPTTAdmin, TreeRelatedFieldListFilter
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'description', 'in_stock', 'price', 'photo', 'slug']
+    pass
 
 
 admin.site.register(Category, DraggableMPTTAdmin)
+
+
+@admin.register(Brand)
+class BrandAdmin(admin.ModelAdmin):
+    pass

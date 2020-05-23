@@ -1,47 +1,8 @@
 from django.db import models
 from django.urls import reverse
+from mptt.fields import TreeManyToManyField
 from pytils.translit import slugify
 from mptt.models import MPTTModel, TreeForeignKey
-
-"""class Category(models.Model):
-    name = models.CharField(max_length=55, unique=True, help_text='Название категории')
-    description = models.TextField(blank=True, help_text='Описание')
-    slug = models.SlugField(unique=True, max_length=100, blank=True)
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super(Category, self).save(*args, **kwargs)
-
-    def get_absolute_url(self):
-        return reverse('catalog:subcategory-list', kwargs={'category_slug': self.slug})
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
-
-
-class Subcategory(models.Model):
-    name = models.CharField(max_length=55, help_text='Подкатегория')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, help_text='Категория')
-    description = models.TextField(help_text='Описание', blank=True)
-    slug = models.SlugField(unique=True, max_length=100, blank=True)
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super(Subcategory, self).save(*args, **kwargs)
-
-    def get_absolute_url(self):
-        return reverse('catalog:subcategory-list', kwargs={'slug': self.category.slug})
-
-    class Meta:
-        verbose_name = 'Подкатегория'
-        verbose_name_plural = 'Подкатегории'"""
 
 
 class Category(MPTTModel):
@@ -61,15 +22,28 @@ class Category(MPTTModel):
         super(Category, self).save(*args, **kwargs)
 
 
+class Brand(models.Model):
+    name = models.CharField(max_length=100, unique=True, help_text='Название')
+    description = models.TextField(help_text='описание', blank=True)
+    photo = models.ImageField('Фото', default='default.jpg', blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Бренд'
+        verbose_name_plural = 'Бренды'
+
+
 class Product(models.Model):
     name = models.CharField(max_length=55, unique=True, help_text='Название')
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, blank=True, null=True)
+    category = TreeManyToManyField(Category, default=None, blank=True)
     description = models.TextField(help_text='Описание')
     price = models.IntegerField('Цена')
     photo = models.ImageField('Фото', default="default.jpg", blank=True, null=True)
     in_stock = models.BooleanField(default=True, help_text='Наличие')
-    #subcategory = models.ForeignKey(Subcategory, default='', on_delete=models.CASCADE, blank=True, help_text='Категория')
     slug = models.SlugField(unique=True, max_length=100, blank=True)
-    category = TreeForeignKey(Category, on_delete=models.SET_NULL, default='', null=True, blank=True)
 
     def __str__(self):
         return self.name

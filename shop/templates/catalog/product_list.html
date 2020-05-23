@@ -1,16 +1,28 @@
 {% extends 'base.html' %}
+{% load catalog_tags %}
 
 {% block content %}
+    <div class="row">
+        {% get_breadcrumb %}
+    </div>
 
-    {% if product_list %}
-        {% for product in product_list %}
+    <div class="row">
+        <div class="col-3">
+            Filters
+        </div>
+        <div class="col-9">
+            {% if product_list %}
+                {% for product in product_list %}
 
-            <div>Товар-{{ product.name }}</div>
-            <div>Цена-{{ product.price }}</div>
+                    <div>Товар-{{ product.name }}</div>
+                    <div>Цена-{{ product.price }}</div>
 
-        {% endfor %}
-    {% else %}
-        Где-то косячок с товарами или их еще нет
-    {% endif %}
+                {% endfor %}
+            {% else %}
+                Где-то косячок с товарами или их еще нет
+            {% endif %}
+        </div>
+    </div>
+
 
 {% endblock %}

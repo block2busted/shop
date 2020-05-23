@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-    {% load bootstrap4 %}
 {% load mptt_tags %}
 
     <nav class="navbar navbar-inverse navbar-static-top marginBottom-0" role="navigation">
@@ -42,30 +41,23 @@
     </nav>
 
 
-    <nav class="nav navbar-nav">
-        <ul class="list-group flex-md-row">
-        <div class="row">
-            {% recursetree categories %}
-                <li {% if node.is_root_node %}class="dropdown btn"{% else %}class="btn"{% endif %}>
-                    <div {% if node.is_root_node %}class="btn dropdown-toggle" type="button"
-                         id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                         aria-expanded="false"{% else %}class="dropdown-item"{% endif %}>
-                        <a {% if not node.is_leaf_node %}href="{% url 'catalog:category-detail' node.slug %}"
-                           {% else %}href="{% url 'catalog:product-list' node.slug %}"{% endif %}>
-                            {{ node.name }}
-                        </a>
-                    </div>
-                        {% if not node.is_leaf_node %}
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                {{ children }}
-                            </ul>
-                            {% elif node.is_child_node %}
-                        {% endif %}
-                </li>
-            {% endrecursetree %}
-        </div>
-        </ul>
-    </nav>
+
+    <script type="text/javascript">
+        function toggleDropdown(e) {
+            const _d = $(e.target).closest('.dropdown'),
+                _m = $('.dropdown-menu', _d);
+            setTimeout(function () {
+                const shouldOpen = e.type !== 'click' && _d.is(':hover');
+                _m.toggleClass('show', shouldOpen);
+                _d.toggleClass('show', shouldOpen);
+                $('[data-toggle="dropdown"]', _d).attr('aria-expanded', shouldOpen);
+            }, e.type === 'mouseleave' ? 300 : 0);
+        }
+
+        $('body')
+            .on('mouseenter mouseleave', '.dropdown', toggleDropdown)
+            .on('click', '.dropdown-menu a', toggleDropdown);
+    </script>
 
 
 {% endblock %}
