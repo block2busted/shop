@@ -1,6 +1,7 @@
 from django.db.models import Q, Count
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView
+
 from .models import Product, Category
 
 
@@ -41,15 +42,36 @@ class CategoryDetailView(DetailView):
         return context
 
 
-class ProductListView(DetailView):
-    model = Category
+class ProductListView(ListView):
+    model = Product
     template_name = 'catalog/product_list.html'
     paginate_by = 12
+    context_object_name = 'product_list'
+
+    def get_queryset(self):
+        queryset = super(ProductListView, self).get_queryset()
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super(ProductListView, self).get_context_data()
-        product_list = Product.objects.filter(category__slug=self.object.slug)
-        context['product_list'] = product_list
+        category = Category.objects.get(slug=self.kwargs['slug'])
+        context['category'] = category
+        return context
+
+
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = 'catalog/product_detail.html'
+    context_object_name = 'product'
+
+    def get_queryset(self):
+        queryset = super(ProductDetailView, self).get_queryset()
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(ProductDetailView, self).get_context_data()
+        product = get_object_or_404(Product, slug=self.object.slug)
+        context['product'] = product
         return context
 
 
@@ -72,3 +94,5 @@ class SearchResultsView(ListView):
         context['product_list'] = product_list
         context['total_products'] = product_list.count()
         return context
+
+

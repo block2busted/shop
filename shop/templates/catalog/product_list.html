@@ -12,17 +12,46 @@
         </div>
         <div class="col-9">
             {% if product_list %}
-                {% for product in product_list %}
+                <div class="row">
+                    {% for product in product_list %}
+                        <div class="col-md-4">
+                            <div class="product-list-item">
+                                <div class="row text-center">
+                                    <img src="{{ product.photo.url }}" alt="product-photo" width="200px">
+                                </div>
+                                <div class="row">
+                                    <div class="col-10">
+                                        <a href="{% url 'catalog:product-detail' product.slug %}">{{ product.name }}</a>
+                                        <div>
+                                            {% if product.discount_price %}
+                                                <div class="text-muted small"><del>{{ product.price }} ₽</del> -{{ product.get_discount }}</div>
+                                                <div>{{ product.discount_price }} ₽</div>
+                                            {% else %}
+                                                {{ product.price }} ₽
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <a href="{{ product.get_add_to_cart_url }}"><i class="fas fa-shopping-cart"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
 
-                    <div>Товар-{{ product.name }}</div>
-                    <div>Цена-{{ product.price }}</div>
-
-                {% endfor %}
+                </div>
             {% else %}
                 Где-то косячок с товарами или их еще нет
             {% endif %}
         </div>
     </div>
+
+    <div class="row">
+        <div class="mx-auto pt-3">
+            {% include 'catalog/pagination.html' %}
+        </div>
+    </div>
+
 
 
 {% endblock %}

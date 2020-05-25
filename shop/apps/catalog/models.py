@@ -41,6 +41,7 @@ class Product(models.Model):
     category = TreeManyToManyField(Category, default=None, blank=True)
     description = models.TextField(help_text='Описание')
     price = models.IntegerField('Цена')
+    discount_price = models.IntegerField('Цена со скидкой', blank=True, null=True)
     photo = models.ImageField('Фото', default="default.jpg", blank=True, null=True)
     in_stock = models.BooleanField(default=True, help_text='Наличие')
     slug = models.SlugField(unique=True, max_length=100, blank=True)
@@ -54,6 +55,16 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         return reverse('catalog:product-detail', kwargs={'slug': self.slug})
+
+    def get_discount(self):
+        discount = int(self.price)-int(self.discount_price)
+        return discount
+
+    def get_add_to_cart_url(self):
+        return reverse('cart:add-to-cart', kwargs={'slug': self.slug})
+
+    def get_remove_from_cart_url(self):
+        return reverse('cart:remove-from-cart', kwargs={'slug': self.slug})
 
     class Meta:
         verbose_name = 'Товар'

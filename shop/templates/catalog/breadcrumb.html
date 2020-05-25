@@ -1,0 +1,15 @@
+{% load mptt_tags %}
+
+
+<ul class="breadcrumb">
+    <li><a href="{% url 'home' %}">Главная</a></li>
+    {% for parent in category.get_ancestors %}
+        <li><a href="{% url 'catalog:category-detail' parent.slug %}">{{ parent.name }}</a></li>
+    {% endfor %}
+    <li>
+        <a {% if not category.is_leaf_node %}href="{% url 'catalog:category-detail' category.slug %}"
+           {% else %}href="{% url 'catalog:product-list' category.slug %}"{% endif %}>{{ category.name }}</a>
+    </li>
+</ul>
+
+

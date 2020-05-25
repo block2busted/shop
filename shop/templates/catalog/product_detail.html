@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load catalog_tags %}
+
+{% block content %}
+    <div class="row">
+        breadcrums
+    </div>
+    <div class="product-content">
+        <div class="row">
+            {{ product.name }}
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <img src="{{ product.photo.url }}" alt="product-main-photo" height="500px">
+            </div>
+            <div class="col-md-4">
+                <div class="price-order-column">
+                    <div class="price">
+                        {% if product.discount_price %}
+                            <div class="text-muted small"><del>{{ product.price }} ₽</del> -{{ product.get_discount }}</div>
+                            <div>{{ product.discount_price }} ₽</div>
+                        {% else %}
+                            {{ product.price }} ₽
+                        {% endif %}
+                    </div>
+                    {% if product in request.user.order %}
+                        <a class="text-muted" href="{% url 'cart:cart' %}">Перейти в корзину</a>
+                    {% else %}
+                        <a class="alert-danger btn-ls" href="{{ product.get_add_to_cart_url }}">
+                            Добавить в корзину
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#home">О товаре</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#menu1">Характеристики</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#menu2">Отзывы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#menu3">Наличие в магазинах</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane container active" id="home">
+                Здесь будет информация о товаре очень очензаьцузаьущцоащу ц туцоща тщоуцтауцтащцу
+            </div>
+            <div class="tab-pane container fade" id="menu1">Тут нужно будет прям железно добавить динамичесие характеристики!</div>
+            <div class="tab-pane container fade" id="menu2">
+                {% if review_list %}
+                    {% for review in review_list %}
+                        <div class="review-content">
+                            {{ review.content|safe }}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <h3>Не оставлено ни одного отзыва</h3>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

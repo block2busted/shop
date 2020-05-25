@@ -21,8 +21,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('catalog/', include('catalog.urls')),
     path('', IndexView.as_view(), name='home'),
+    path('catalog/', include('catalog.urls')),
+    path('cart/', include('cart.urls')),
+    path('accounts/', include('allauth.urls')),
     path('search-results', SearchResultsView.as_view(), name='search-results'),
 ]
 

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div>
+        Найдено {{ total_products }} товаров.
+    </div>
+    <div>
+        {% for product in product_list %}
+            <div>
+                {{ product.name }}
+            </div>
+        {% endfor %}
+
+    </div>
+{% endblock %}
