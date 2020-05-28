@@ -38,3 +38,9 @@ class Order(models.Model):
         for order_product in self.products.all():
             total_order_price += order_product.get_final_price()
         return total_order_price
+
+    def get_total_product_quantity(self):
+        total_product_quantity = 0
+        for order_product in self.products.all():
+            total_product_quantity += order_product.quantity
+        return total_product_quantity

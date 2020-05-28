@@ -3,13 +3,17 @@ from cart.models import Order
 
 register = template.Library()
 
+
 @register.filter
 def get_cart_product_count(user):
     if user.is_authenticated:
         order_queryset = Order.objects.filter(user=user, is_ordered=False)
+        total_product_quantity = 0
         if order_queryset.exists():
-            return order_queryset[0].products.count()
-    return 0
+            order = order_queryset[0]
+            for order_product in order.products.all():
+                total_product_quantity += order_product.quantity
+    return total_product_quantity
 
 
 @register.filter

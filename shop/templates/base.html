@@ -67,7 +67,7 @@
                     <div class="dropdown-item">
                         <div class="row">
                             <div class="col-6">
-                                {{ request.user|get_total_order_price }}
+                                {{ request.user|get_total_order_price }} ₽
                             </div>
                             <div class="col-6">
                                 <a class="btn-danger" href="{% url 'cart:cart' %}">В корзину</a>
