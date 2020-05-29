@@ -1,22 +1,24 @@
 from django.db import models
 from django.conf import settings
 from catalog.models import Product
+from django.contrib.auth.models import User
 
 
 class OrderProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    order_pk = models.IntegerField(blank=True, null=True, help_text='В каком заказе')
     is_ordered = models.BooleanField(default=False)
     quantity = models.IntegerField(default=1)
 
     def __str__(self):
-        return f'{self.quantity} - {self.product.name}'
+        return f'Заказ №{self.order_pk}: {self.product.name} x {self.quantity}'
 
     def get_total_product_price(self):
-        return self.quantity*self.product.price
+        return self.quantity * self.product.price
 
     def get_total_discount_product_price(self):
-        return self.quantity*self.product.discount_price
+        return self.quantity * self.product.discount_price
 
     def get_final_price(self):
         if self.product.discount_price:
@@ -25,13 +27,13 @@ class OrderProduct(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     products = models.ManyToManyField(OrderProduct)
     created = models.DateTimeField(auto_now_add=True)
     is_ordered = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.username
+        return f'Заказ №{self.pk}'
 
     def get_total_order_price(self):
         total_order_price = 0

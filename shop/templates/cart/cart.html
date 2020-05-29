@@ -2,8 +2,9 @@
 {% load cart_tags %}
 
 {% block content %}
-    <h3>Моя корзина</h3>
-
+    {% if empty %}
+        <h3>У вас пока нет добавленных товаров</h3>
+    {% else %}
     <div class="row">
         <div class="col-8">
             {% for order_product in order.products.all %}
@@ -71,5 +72,5 @@
             </div>
         </div>
     </div>
-
+    {% endif %}
 {% endblock %}
