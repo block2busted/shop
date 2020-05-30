@@ -119,13 +119,12 @@ def remove_from_cart(request, slug):
         else:
             messages.info(request, "У вас нет активных заказов.")
             return redirect('cart:cart')
-        return redirect('cart:cart')
     else:
         try:
             order_pk = request.session['order_pk']
             order = Order.objects.get(pk=order_pk)
         except:
-            the_pk = None
+            order_pk = None
         if order.products.filter(product__slug=product.slug).exists():
             order_product = OrderProduct.objects.filter(
                 product=product,
@@ -142,14 +141,15 @@ def remove_from_cart(request, slug):
 class CartView(View, LoginRequiredMixin):
     def get(self, *args, **kwargs):
         try:
+            try:  # Если пользователь не залогинен, необходимо доставать его корзину по ключу 'order_pk, если он есть
+                order_pk = self.request.session['order_pk']
+            except:
+                order_pk = None
             if self.request.user.is_authenticated:
-                order = Order.objects.get(user=self.request.user, is_ordered=False)
-            else:
-                try:  # Если пользователь не залогинен, необходимо доставать его корзину по ключу 'order_pk, если он есть
-                    order_pk = self.request.session['order_pk']
-                except:
-                    order_pk = None
-                order = Order.objects.get(pk=order_pk, is_ordered=False)
+                #order = Order.objects.get(pk=order_pk, is_ordered=False)
+                Order.objects.filter(pk=order_pk, is_ordered=False).update(user=self.request.user)
+                OrderProduct.objects.filter(order_pk=order_pk, is_ordered=False).update(user=self.request.user)
+            order = Order.objects.get(pk=order_pk, is_ordered=False)
             context = {
                 'order': order
             }
@@ -160,7 +160,6 @@ class CartView(View, LoginRequiredMixin):
             )
         except ObjectDoesNotExist:
             context = {'empty': True}
-            # messages.error(self.request, 'У вас нет заказов')
             return render(
                 self.request,
                 'cart/cart.html',
@@ -192,10 +191,7 @@ def reduse_products_in_cart(request, slug):
             messages.info(request, "У вас нет активных заказов.")
             return redirect('cart:cart')
     else:
-        try:
-            order_pk = request.session['order_pk']
-        except:
-            order_pk = None
+        order_pk = request.session['order_pk']
         order = Order.objects.get(pk=order_pk, is_ordered=False)
         if order.products.filter(product__slug=product.slug).exists():
             order_product = OrderProduct.objects.filter(
@@ -235,10 +231,7 @@ def increase_products_in_cart(request, slug):
             return redirect('cart:cart')
         return redirect('cart:cart')
     else:
-        try:
-            order_pk = request.session['order_pk']
-        except:
-            order_pk = None
+        order_pk = request.session['order_pk']
         order = Order.objects.get(pk=order_pk, is_ordered=False)
         if order.products.filter(product__slug=product.slug).exists():
             order_product = OrderProduct.objects.filter(
