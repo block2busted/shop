@@ -68,7 +68,7 @@
             <div>В корзине {{ order.get_total_product_quantity }} товара.</div>
             <div>Сумма {{ order.get_total_order_price }} ₽.</div>
             <div>
-                <a class="btn-danger" href="">Продолжить оформление</a>
+                <a class="btn-danger" href="{% url 'cart:checkout' %}">Продолжить оформление</a>
             </div>
         </div>
     </div>

@@ -48,3 +48,15 @@ ul.breadcrumb li a:hover {
   height: 100%;
   outline: 1px solid #cccccc;
 }
+
+.formfield {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  height: 25px;
+  width: 100%;
+  margin: 10px 10px 10px 0;
+}
+
+.panel-title {display: inline;font-weight: bold;}
+.checkbox.pull-right { margin: 0; }
+.pl-ziro { padding-left: 0px; }

@@ -1,5 +1,5 @@
 from django import template
-from cart.models import Order
+from cart.models import Order, OrderProduct
 
 register = template.Library()
 
@@ -27,10 +27,14 @@ def get_total_order_price(request):
     except:
         order_pk = None
     if order_pk:
-        order = Order.objects.get(pk=order_pk, is_ordered=False)
         total_order_price = 0
-        for order_product in order.products.all():
-            total_order_price += order_product.get_final_price()
+        order_queryset = Order.objects.filter(pk=order_pk, is_ordered=False)
+        if order_queryset.exists():
+            order = order_queryset[0]
+            for order_product in order.products.all():
+                total_order_price += order_product.get_final_price()
+        else:
+            total_order_price = 0
     else:
         total_order_price = 0
     return total_order_price

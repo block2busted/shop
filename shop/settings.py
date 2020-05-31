@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'cart',
     'pytils',
     'bootstrap4',
-    'mptt'
+    'mptt',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [

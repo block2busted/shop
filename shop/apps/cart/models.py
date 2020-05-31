@@ -25,12 +25,52 @@ class OrderProduct(models.Model):
             return self.get_total_discount_product_price()
         return self.get_total_product_price()
 
+    class Meta:
+        verbose_name = 'Товар в заказе'
+        verbose_name_plural = 'Товары в заказах'
+
+
+class ShippingAddress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    city = models.CharField(max_length=100, help_text='Город')
+    street = models.CharField(max_length=100, help_text='Улица')
+    house = models.CharField(max_length=100, help_text='Дома')
+    flat = models.CharField(max_length=100, help_text='Квартира')
+    order_pk = models.IntegerField()
+
+    def __str__(self):
+        return f'Адрес заказа №{self.order_pk}'
+
+    class Meta:
+        verbose_name = 'Адрес доставки'
+        verbose_name_plural = 'Адреса доставки'
+
+
+class Addressee(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    first_name = models.CharField(max_length=100, help_text='Имя')
+    last_name = models.CharField(max_length=100, help_text='Фамилия')
+    phone = models.CharField(max_length=100, help_text='Телефон')
+    email = models.CharField(max_length=100, help_text='Почта')
+    order_pk = models.IntegerField()
+
+    def __str__(self):
+        return f'Получатель заказа №{self.order_pk}'
+
+    class Meta:
+        verbose_name = 'Адресат'
+        verbose_name_plural = 'Адресаты'
+
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     products = models.ManyToManyField(OrderProduct)
     created = models.DateTimeField(auto_now_add=True)
     is_ordered = models.BooleanField(default=False)
+    shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, blank=True, null=True, default='',
+                                         help_text='Адрес доставки')
+    addressee = models.ForeignKey(Addressee, on_delete=models.SET_NULL, blank=True, null=True, default='',
+                                  help_text='Адресат')
 
     def __str__(self):
         return f'Заказ №{self.pk}'
@@ -46,3 +86,7 @@ class Order(models.Model):
         for order_product in self.products.all():
             total_product_quantity += order_product.quantity
         return total_product_quantity
+
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
