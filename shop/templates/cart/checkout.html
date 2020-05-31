@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% load crispy_forms_tags %}
+{% load cart_tags %}
+{% load static %}
+
+{% block content %}
+
+    <!--Main layout-->
+    <main class="mt-5 pt-4">
+        <div class="container wow fadeIn">
+            <!-- Heading -->
+            <h2 class="my-5 h2">Оформление заказа</h2>
+            <!--Grid row-->
+            <div class="row">
+                <!--Grid column-->
+                <div class="col-md-8 mb-4">
+                    <!--Card-->
+                    <div class="card">
+
+                        <!--Card content-->
+                        <form class="card-body" method="post" action="{% url 'cart:checkout' %}">
+                            {% csrf_token %}
+                            <h4>1. Укажите адрес доставки</h4>
+                            <!-- Город -->
+                            <div class="md-form mb-2">
+                                <label for="address" class="">Город</label>
+                                {{ form.city }}
+                            </div>
+                            <!-- Улица -->
+                            <div class="md-form mb-2">
+                                <label for="address" class="">Улица</label>
+                                {{ form.street }}
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <!--Дом/корпус-->
+                                    <div class="md-form ">
+                                        <label for="firstName" class="">Дом/корпус</label>
+                                        {{ form.house }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <!--Квартира-->
+                                    <div class="md-form">
+                                        <label for="lastName" class="">Квартира</label>
+                                        {{ form.flat }}
+                                    </div>
+                                </div>
+                            </div>
+                        <hr>
+                            <h4 class="mt-3">2. Как вам будет удобнее оплатить заказ?</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="custom-control custom-radio">
+                                        <input id="at_home" name="PayNowOrLater" type="radio"
+                                               class="custom-control-input"
+                                               checked required>
+                                        <label class="custom-control-label" for="at_home">При получении</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="custom-control custom-radio">
+                                        <input id="on_site" name="PayNowOrLater" type="radio" class="custom-control-input"
+                                               required>
+                                        <label class="custom-control-label" for="on_site">Онлайн</label>
+                                    </div>
+                                </div>
+                            </div>
+                                {% if not user.is_authenticatedd %}
+                                    <hr>
+                                    <h4 class="mt-3">3.Укажите данные получателя</h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <!-- Имя -->
+                                            <div class="md-form ">
+                                                <label for="first_ame" class="small">Имя</label>
+                                                {{ form.first_name }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <!-- Фамилия -->
+                                            <div class="md-form">
+                                                <label for="last_name" class="small">Фамилия</label>
+                                                {{ form.last_name }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <!--Почта-->
+                                            <div class="md-form mb-5">
+                                                <label for="email" class="small">Email</label>
+                                                {{ form.email }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <!-- Телефон -->
+                                            <div class="md-form">
+                                                <label for="last_name" class="small">Телефон</label>
+                                                {{ form.phone }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            <!--Grid row-->
+                            <hr>
+                            <button class="btn btn-danger btn-lg btn-block" type="submit">Сделать заказ</button>
+                        </form>
+                    </div>
+                    <!--/.Card-->
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <!-- Heading -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">В заказе {{ request|get_cart_product_count }} товар на сумму {{ request|get_total_order_price }} ₽.</span>
+                    </div>
+                    <ul class="list-group mb-3 z-depth-1">
+                        {% for order_product in order.products.all %}
+                        <li class="list-group-item d-flex justify-content-between lh-condensed">
+                            <div>
+                                <h6 class="my-0">{{ order_product.product.name}}</h6>
+                                <small class="text-muted">колличество</small>
+                            </div>
+                            <span class="text-muted">{{ order_product.get_total_product_price }} ₽</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+{% endblock %}
