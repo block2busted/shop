@@ -33,6 +33,8 @@ def get_total_order_price(request):
             order = order_queryset[0]
             for order_product in order.products.all():
                 total_order_price += order_product.get_final_price()
+            if order.coupon:
+                total_order_price -= total_order_price * (order.coupon.amount) // 100 # Если есть промокод
         else:
             total_order_price = 0
     else:

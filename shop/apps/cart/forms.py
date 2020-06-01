@@ -38,6 +38,15 @@ class CheckoutForm(forms.Form):
         'placeholder': 'Email',
         'autocomplete': 'off',
     }))
-    #payment_option = forms.BooleanField(widget=forms.RadioSelect())
+
+
+class CouponForm(forms.Form):
+    code = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Введите номер промокода',
+        'aria-label': 'Recipient\`s username',
+        'aria-describedby': 'basic-addon2',
+        'autocomplete': 'off',
+    }))
 
 

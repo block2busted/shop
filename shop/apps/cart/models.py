@@ -62,6 +62,29 @@ class Addressee(models.Model):
         verbose_name_plural = 'Адресаты'
 
 
+class Payment(models.Model):
+    stripe_charge_id = models.CharField(max_length=50)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    order_pk = models.IntegerField()
+    amount = models.FileField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Оплата заказа №{self.order_pk}'
+
+    class Meta:
+        verbose_name = 'Оплата'
+        verbose_name_plural = 'Оплаты'
+
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=15)
+    amount = models.IntegerField()
+
+    def __str__(self):
+        return self.code
+
+
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     products = models.ManyToManyField(OrderProduct)
@@ -71,6 +94,8 @@ class Order(models.Model):
                                          help_text='Адрес доставки')
     addressee = models.ForeignKey(Addressee, on_delete=models.SET_NULL, blank=True, null=True, default='',
                                   help_text='Адресат')
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True)
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f'Заказ №{self.pk}'
@@ -79,6 +104,8 @@ class Order(models.Model):
         total_order_price = 0
         for order_product in self.products.all():
             total_order_price += order_product.get_final_price()
+        if self.coupon:
+            total_order_price -= total_order_price * self.coupon.amount // 100
         return total_order_price
 
     def get_total_product_quantity(self):

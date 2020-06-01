@@ -7,8 +7,8 @@ from django.contrib import messages
 from catalog.models import Product
 from django.views.generic import DetailView
 from django.views.generic.base import View
-from .models import Order, OrderProduct, Addressee, ShippingAddress
-from .forms import CheckoutForm
+from .models import Order, OrderProduct, Addressee, ShippingAddress, Payment, Coupon
+from .forms import CheckoutForm, CouponForm
 from django.conf import settings
 import stripe
 
@@ -72,35 +72,6 @@ def add_to_cart(request, slug):
             messages.info(request, "Вы добавили товар в корзину.")
             order.products.add(order_product)
             return redirect('catalog:product-detail', slug)
-
-
-'''def add_to_cart(request, slug):
-    product = get_object_or_404(Product, slug=slug)
-    if request.user.is_authenticated:
-        order_product, created = OrderProduct.objects.get_or_create(
-            product=product,
-            user=request.user,
-            is_ordered=False)
-        order_queryset = Order.objects.filter(
-            user=request.user,
-            is_ordered=False
-        )
-    if order_queryset.exists():
-        order = order_queryset[0]
-        if order.products.filter(product__slug=product.slug).exists():
-            return redirect('catalog:product-detail', slug)
-        else:
-            messages.info(request, "Вы добавили товар в корзину.")
-            order.products.add(order_product)
-            return redirect('catalog:product-detail', slug)
-    else:
-        #order = Order.objects.create(user=request.user)
-        order = Order.objects.create(pk=the_pk)
-        order.products.add(order_product)
-
-        messages.info(request, "Вы добавили товар в корзину.")
-        return redirect('catalog:product-detail', slug)
-'''
 
 
 def remove_from_cart(request, slug):
@@ -232,9 +203,6 @@ class CartView(View):
                 order_pk = self.request.session['order_pk']
             except:
                 order_pk = None
-            #if self.request.user.is_authenticated:
-                #Order.objects.filter(pk=order_pk, is_ordered=False).update(user=self.request.user)
-                #OrderProduct.objects.filter(order_pk=order_pk, is_ordered=False).update(user=self.request.user)
             order = Order.objects.get(pk=order_pk, is_ordered=False)
             context = {
                 'order': order
@@ -253,6 +221,58 @@ class CartView(View):
             )
 
 
+def get_coupon(request, code):
+    try:
+        coupon = Coupon.objects.get(code=code)
+        return coupon
+    except ObjectDoesNotExist:
+        messages.info(request, 'Промокод не найден')
+        order_pk = request.session['order_pk']
+        order = Order.objects.get(pk=order_pk, is_ordered=False)
+        form = CheckoutForm()
+        coupon_form = CouponForm(request.POST or None)
+        context = {
+            'order': order,
+            'coupon_form': coupon_form,
+            'form': form,
+        }
+        return render(
+            request,
+            'cart/checkout.html',
+            context)
+
+
+class AddCoupon(View):
+    def get(self, *args, **kwargs):
+        pass
+
+    def post(self, *args, **kwargs):
+        coupon_form = CouponForm(self.request.POST or None)
+        form = CheckoutForm()
+        if coupon_form.is_valid():
+            try:
+                code = coupon_form.cleaned_data.get('code')
+                order_pk = self.request.session['order_pk']
+                order = Order.objects.get(pk=order_pk, is_ordered=False)
+                order.coupon = get_coupon(self.request, code)
+                order.save()
+                context = {
+                    'order': order,
+                    'coupon_form': CouponForm(),
+                    'form': form
+                }
+                messages.success(self.request, 'Вы использовали промокод')
+                return render(
+                    self.request,
+                    'cart/checkout.html',
+                    context
+                )
+            except ObjectDoesNotExist:
+                messages.info(self.request, 'У вас нет активных заказов')
+                return render(self.request, 'cart/checkout.html')
+        return None
+
+
 class CheckoutView(View):
     def get(self, *args, **kwargs):
         order_pk = self.request.session['order_pk']
@@ -260,6 +280,7 @@ class CheckoutView(View):
         form = CheckoutForm()
         context = {
             'order': order,
+            'coupon_form': CouponForm(),
             'form': form
         }
         return render(
@@ -332,16 +353,72 @@ class CheckoutView(View):
 
 class PaymentView(View):
     def get(self, *args, **kwargs):
+
         return render(
             self.request,
             'cart/payment.html'
         )
 
     def post(self, *args, **kwargs):
+        order_pk = self.request.session['order_pk']
+        order = Order.objects.get(pk=order_pk, is_ordered=False)
         token = self.request.POST.get('stripeToken')
-        stripe.Charge.create(
-            amount=2000,
-            currency="rub",
-            source=token,
-            description="My First Test Charge (created for API docs)",
-        )
+        amount = order.get_total_order_price()
+        try:
+            charge = stripe.Charge.create(
+                amount=amount,
+                currency="rub",
+                source=token,
+            )
+            # Создаём payment
+            payment = Payment()
+            payment.stripe_charge_id = charge['id']
+            payment.order_pk = order_pk
+            if self.request.user.is_authenticated:
+                payment.user = self.request.user
+            payment.amount = amount
+            payment.save()
+            # Добавляем оплату к заказу
+
+            order_products = order.products.all()
+            order_products.update(is_ordered=True)
+            for product in order_products:
+                product.save()
+
+            order.is_ordered = True
+            order.payment = payment
+            order.save()
+            messages.success(self.request, 'Ваш заказ оплачен.')
+            return redirect('/')
+        except stripe.error.CardError as e:
+            body = e.json_body
+            err = body.get('error', {})
+            messages.error(self.request, f"{err.get('message')}")
+            return redirect('/')
+        except stripe.error.RateLimitError as e:
+            # Too many requests made to the API too quickly
+            messages.error(self.request, 'Invalid parameters!')
+            return redirect('/')
+        except stripe.error.InvalidRequestError as e:
+            # Invalid parameters were supplied to Stripe's API
+            messages.error(self.request, '')
+            return redirect('/')
+        except stripe.error.AuthenticationError as e:
+            # Authentication with Stripe's API failed
+            # (maybe you changed API keys recently)
+            messages.error(self.request, 'Not authenticated!')
+            return redirect('/')
+        except stripe.error.APIConnectionError as e:
+            # Network communication with Stripe failed
+            messages.error(self.request, 'Network error!')
+            return redirect('/')
+        except stripe.error.StripeError as e:
+            # Display a very generic error to the user, and maybe send
+            # yourself an email
+            messages.error(self.request, 'Что-по пошло не так, оплата не прошла!')
+            return redirect('/')
+        except Exception as e:
+            # Something else happened, completely unrelated to Stripe
+            messages.error(self.request, 'Что-то не так')
+            return redirect('/')
+
