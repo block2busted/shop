@@ -1,7 +1,48 @@
-{% extends 'base.html' %}
-{% load cart_tags %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% load bootstrap4 %}
+    {% load static %}
+    {% load catalog_tags %}
+    {% load cart_tags %}
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <title>BlockbustedShop</title>
+</head>
+<body>
 
-{% block content %}
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="navbar-brand" href="{% url 'home' %}">BlockbustedShop</a>
+            </li>
+            <li class="nav-item">
+                <h3>Моя корзина</h3>
+                <div>город</div>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+        </div>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<!-- Main Section -->
+<div class="container">
     {% if empty %}
         <h3>У вас пока нет добавленных товаров</h3>
     {% else %}
@@ -39,18 +80,18 @@
                             </div>
                             <div class="row">
                                 <div class="col-2">
-                                    <a href="{{ order_product.product.get_remove_from_cart_url }}">удалить</a>
+                                    <a href="{% url 'cart:remove-from-cart' order_product.product.slug %}">удалить</a>
                                 </div>
                                 <div class="col-8">
 
                                 </div>
                                 <div class="col-2">
                                     <span class="pl-2 text-right">
-                                        <a href="{% url 'cart:reduse-products-in-cart' order_product.product.slug %}">
+                                        <a href="{% url 'cart:reduse-amount' order_product.product.slug %}">
                                             <i class="fas fa-minus mr-2"></i>
                                         </a>
                                             {{ order_product.quantity }}
-                                        <a href="{% url 'cart:increase-products-in-cart' order_product.product.slug %}">
+                                        <a href="{% url 'cart:increase-amount' order_product.product.slug %}">
                                             <i class="fas fa-plus ml-2"></i>
                                         </a>
                                     </span>
@@ -62,15 +103,36 @@
             {% endfor %}
         </div>
         <div class="col-4">
+            <div>
+                <a href="{% url 'home' %}">Вернуться к покупкам</a>
+            </div>
             {% if d %}
                 <del>сумма без скидки</del>
             {% endif %}
             <div>В корзине {{ order.get_total_product_quantity }} товара.</div>
             <div>Сумма {{ order.get_total_order_price }} ₽.</div>
             <div>
-                <a class="btn-danger" href="{% url 'cart:checkout' %}">Продолжить оформление</a>
+                {% if user.is_authenticated %}
+                    <a class="btn-danger" href="{% url 'cart:checkout' %}">Продолжить оформление</a>
+                {% else %}
+                    <a class="btn-danger" href="{% url 'cart:authentitication' %}">Продолжить оформление</a>
+                {% endif %}
             </div>
         </div>
     </div>
     {% endif %}
-{% endblock %}
+</div>
+
+<footer>
+    FOOTER
+</footer>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.5.0.js" integrity="sha256-r/AaFHrszJtwpe+tHyNi/XCfMxYpbsRg2Uqn0x3s2zc=" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/9a7f4a17ca.js" crossorigin="anonymous"></script>
+
+<div>{% block javascript %}{% endblock %}</div>
+
+</body>
+</html>

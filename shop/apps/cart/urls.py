@@ -1,12 +1,17 @@
 from django.urls.conf import path
 from .views import add_to_cart, \
     remove_from_cart, \
-    reduse_products_in_cart, \
-    increase_products_in_cart,\
+    reduse_amount, \
+    increase_amount,\
     AddCoupon, \
     CartView, \
     CheckoutView, \
-    PaymentView
+    StripePaymentView, \
+    PaymentSuccessView, \
+    PaymentRobokassaView, \
+    YandexPaymentView, \
+    login_or_guest, \
+    pay_robokassa
 
 
 app_name = 'cart'
@@ -15,8 +20,14 @@ urlpatterns = [
     path('add-to-cart/<slug>', add_to_cart, name='add-to-cart'),
     path('add-coupon', AddCoupon.as_view(), name='add-coupon'),
     path('remove-from-cart/<slug>', remove_from_cart, name='remove-from-cart'),
-    path('reduse-products-in-cart/<slug>', reduse_products_in_cart, name='reduse-products-in-cart'),
-    path('increase-products-in-cart/<slug>', increase_products_in_cart, name='increase-products-in-cart'),
+    path('reduse-amount/<slug>', reduse_amount, name='reduse-amount'),
+    path('increase-amount/<slug>', increase_amount, name='increase-amount'),
     path('checkout', CheckoutView.as_view(), name='checkout'),
-    path('payment', PaymentView.as_view(), name='payment')
+    path('payment', StripePaymentView.as_view(), name='payment-stripe'),
+    #path('robokassa', PaymentRobokassaView.as_view(), name='payment-robokassa'),
+    path('payment-success', PaymentSuccessView.as_view(), name='payment-success'),
+    path('authentitication', login_or_guest, name='authentitication'),
+    path('payment-yandex', YandexPaymentView.as_view(), name='payment-yandex'),
+
+    path('robokassa', pay_robokassa, name='payment-robokassa')
 ]

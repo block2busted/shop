@@ -1,77 +1,98 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib import messages
 from catalog.models import Product
-from django.views.generic import DetailView
-from django.views.generic.base import View
+from django.template.loader import render_to_string
+from django.views.generic.base import View, TemplateView
+from robokassa.forms import RobokassaForm
+from allauth.account.forms import LoginForm
 from .models import Order, OrderProduct, Addressee, ShippingAddress, Payment, Coupon
 from .forms import CheckoutForm, CouponForm
 from django.conf import settings
 import stripe
+from yandex_checkout import Configuration, Payment
+import uuid
 
-
-stripe.api_key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def add_to_cart(request, slug):
     product = get_object_or_404(Product, slug=slug)
-    if request.user.is_authenticated:
-        order_queryset = Order.objects.filter(
-            user=request.user,
-            is_ordered=False
-        )
-        if order_queryset.exists():
-            order = order_queryset[0]
-            #order_pk = request.session['order_pk']
-            request.session['order_pk'] = order.pk
-            order_pk = request.session['order_pk']
+    if request.is_ajax():
+        if request.user.is_authenticated:
+            order_queryset = Order.objects.filter(
+                user=request.user,
+                is_ordered=False
+            )
+            if order_queryset.exists():
+                order = order_queryset[0]
+                request.session['order_pk'] = order.pk
+                order_pk = request.session['order_pk']
+                order_product, created = OrderProduct.objects.get_or_create(
+                    product=product,
+                    user=request.user,
+                    order_pk=order_pk,
+                    is_ordered=False
+                )
+                if order.products.filter(product__slug=product.slug).exists():
+                    return redirect('catalog:product-detail', slug)
+                else:
+                    messages.info(request, "Вы добавили товар в корзину.")
+                    order.products.add(order_product)
+                    data = {
+                        'reload_cart': render_to_string('cart/cart_detail.html', {
+                            'request': request,
+                        })
+                    }
+                    return JsonResponse(data)
+            else:
+                order = Order.objects.create(user=request.user)
+                order_pk = order.pk
+                request.session['order_pk'] = order.pk
+                order_product, created = OrderProduct.objects.get_or_create(
+                    product=product,
+                    user=request.user,
+                    order_pk=order_pk,
+                    is_ordered=False
+                )
+                order.products.add(order_product)
+                messages.info(request, "Вы добавили товар в корзину.")
+                data = {
+                    'reload_cart': render_to_string('cart/cart_detail.html', {
+                        'request': request,
+                    })
+                }
+                return JsonResponse(data)
+        else:
+            try:
+                order_pk = request.session['order_pk']
+                order = Order.objects.get(pk=order_pk)
+            except:
+                order = Order.objects.create()
+                request.session['order_pk'] = order.pk
+                order_pk = order.pk
             order_product, created = OrderProduct.objects.get_or_create(
                 product=product,
-                user=request.user,
                 order_pk=order_pk,
                 is_ordered=False
             )
             if order.products.filter(product__slug=product.slug).exists():
-                return redirect('catalog:product-detail', slug)
+                data = {
+                    'reload_cart': render_to_string('cart/cart_detail.html', {
+                        'request': request,
+                    })
+                }
+                return JsonResponse(data)
             else:
                 messages.info(request, "Вы добавили товар в корзину.")
                 order.products.add(order_product)
-                return redirect('catalog:product-detail', slug)
-        else:
-            order = Order.objects.create(user=request.user)
-            order_pk = order.pk
-            request.session['order_pk'] = order.pk
-            order_product, created = OrderProduct.objects.get_or_create(
-                product=product,
-                user=request.user,
-                order_pk=order_pk,
-                is_ordered=False
-            )
-            order.products.add(order_product)
-            messages.info(request, "Вы добавили товар в корзину.")
-            return redirect('catalog:product-detail', slug)
-    else:
-        try:
-            order_pk = request.session['order_pk']
-            order = Order.objects.get(pk=order_pk)
-        except:
-            order = Order.objects.create()
-            request.session['order_pk'] = order.pk
-            order_pk = order.pk
-        order_product, created = OrderProduct.objects.get_or_create(
-            product=product,
-            order_pk=order_pk,
-            is_ordered=False
-        )
-        if order.products.filter(product__slug=product.slug).exists():
-            return redirect('catalog:product-detail', slug)
-        else:
-            messages.info(request, "Вы добавили товар в корзину.")
-            order.products.add(order_product)
-            return redirect('catalog:product-detail', slug)
+                data = {
+                    'reload_cart': render_to_string('cart/cart_detail.html', {
+                        'request': request,
+                    })
+                }
+                return JsonResponse(data)
 
 
 def remove_from_cart(request, slug):
@@ -100,7 +121,7 @@ def remove_from_cart(request, slug):
     else:
         try:
             order_pk = request.session['order_pk']
-            #order = Order.objects.get(pk=order_pk)
+            # order = Order.objects.get(pk=order_pk)
         except:
             order_pk = None
         order = Order.objects.get(pk=order_pk)
@@ -117,7 +138,7 @@ def remove_from_cart(request, slug):
             return redirect('cart:cart')
 
 
-def reduse_products_in_cart(request, slug):
+def reduse_amount(request, slug):
     product = get_object_or_404(Product, slug=slug)
     if request.user.is_authenticated:
         order_queryset = Order.objects.filter(
@@ -157,7 +178,15 @@ def reduse_products_in_cart(request, slug):
     return redirect('cart:cart')
 
 
-def increase_products_in_cart(request, slug):
+def login_or_guest(request):
+    form = LoginForm()
+    context = {
+        'form': form
+    }
+    return render(request, 'cart/login_or_guest.html', context)
+
+
+def increase_amount(request, slug):
     product = get_object_or_404(Product, slug=slug)
     if request.user.is_authenticated:
         order_queryset = Order.objects.filter(
@@ -205,7 +234,7 @@ class CartView(View):
                 order_pk = None
             order = Order.objects.get(pk=order_pk, is_ordered=False)
             context = {
-                'order': order
+                'order': order,
             }
             return render(
                 self.request,
@@ -243,9 +272,6 @@ def get_coupon(request, code):
 
 
 class AddCoupon(View):
-    def get(self, *args, **kwargs):
-        pass
-
     def post(self, *args, **kwargs):
         coupon_form = CouponForm(self.request.POST or None)
         form = CheckoutForm()
@@ -303,9 +329,10 @@ class CheckoutView(View):
                 last_name = form.cleaned_data.get('last_name')
                 email = form.cleaned_data.get('email')
                 phone = form.cleaned_data.get('phone')
+                payment_option = form.cleaned_data.get('payment_option')
                 if self.request.user.is_authenticated:
                     shipping_address = ShippingAddress(
-                        user = self.request.user,
+                        user=self.request.user,
                         city=city,
                         street=street,
                         house=house,
@@ -341,7 +368,14 @@ class CheckoutView(View):
                 order.shipping_address = shipping_address
                 order.addressee = addressee
                 order.save()
-                return redirect('cart:payment')
+                if payment_option == 'S':
+                    return redirect('cart:payment-stripe')
+                elif payment_option == 'H':
+                    return redirect('cart:payment-success')
+                elif payment_option == 'R':
+                    return redirect('cart:payment-robokassa')
+                elif payment_option == 'Y':
+                    return redirect('cart:payment-yandex')
         except ObjectDoesNotExist:
             context = {'empty': True}
             return render(
@@ -351,12 +385,11 @@ class CheckoutView(View):
             )
 
 
-class PaymentView(View):
+class StripePaymentView(View):
     def get(self, *args, **kwargs):
-
         return render(
             self.request,
-            'cart/payment.html'
+            'cart/payment_stripe.html'
         )
 
     def post(self, *args, **kwargs):
@@ -379,12 +412,10 @@ class PaymentView(View):
             payment.amount = amount
             payment.save()
             # Добавляем оплату к заказу
-
             order_products = order.products.all()
             order_products.update(is_ordered=True)
             for product in order_products:
                 product.save()
-
             order.is_ordered = True
             order.payment = payment
             order.save()
@@ -422,3 +453,70 @@ class PaymentView(View):
             messages.error(self.request, 'Что-то не так')
             return redirect('/')
 
+
+def pay_robokassa(request):
+    order_pk = request.session['order_pk']
+    order = Order.objects.get(pk=order_pk, is_ordered=False)
+    amount = order.get_total_order_price()
+    print(amount)
+    form = RobokassaForm(initial={
+        'OutSum': amount,
+        'InvId': order_pk,
+        'Desc': 'Тестовая оплата',
+        'IsTest': 1,
+        'MerchantLogin': 'BlockbustedShop',
+        'Pass1': 'mQ48kJUg2lQUN5Nh0aEh',
+        'SignatureValue': 'hvrru8o2WOIY19qt7xWo',
+    })
+    context = {
+        'form': form,
+    }
+    return render(request, 'cart/payment_robokassa.html', context)
+
+
+class PaymentRobokassaView(View):
+    def get(self, *args, **kwargs):
+        order_pk = self.request.session['order_pk']
+        order = Order.objects.get(pk=order_pk, is_ordered=False)
+        amount = order.get_total_order_price()
+        print(amount)
+        form = RobokassaForm(initial={
+            'OutSum': amount,
+            'InvId': order_pk,
+            'Desc': 'Тестовая оплата',
+            'IsTest': 1,
+            'MerchantLogin': 'BlockbustedShop',
+            'Pass1': 's6pS1LpEhZO0m6iWHT4i',
+            'SignatureValue': 'U4aTMmo8mF4dIhHP5hJ9',
+        })
+        context = {
+            'form': form,
+        }
+        return render(self.request, 'cart/payment_robokassa.html', context)
+
+    def post(self, *args, **kwargs):
+        order_pk = self.request.session['order_pk']
+        order = Order.objects.get(pk=order_pk, is_ordered=False)
+        amount = order.get_total_order_price()
+        print(amount)
+        form = RobokassaForm(initial={
+            'OutSum': amount,
+            'InvId': order_pk,
+            'Desc': 'Тестовая оплата',
+            'IsTest': 1,
+            'MerchantLogin': 'BlockbustedShop',
+            'Pass1': 's6pS1LpEhZO0m6iWHT4i',
+            'SignatureValue': 'U4aTMmo8mF4dIhHP5hJ9',
+        })
+        context = {
+            'form': form,
+        }
+        return render(self.request, 'cart/payment_robokassa.html', context)
+
+
+class PaymentSuccessView(TemplateView):
+    template_name = 'cart/payment_success.html'
+
+
+class YandexPaymentView(View):
+    pass

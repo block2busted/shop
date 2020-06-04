@@ -1,0 +1,56 @@
+{% extends "base_order.html" %}
+
+{% load i18n %}
+{% load account socialaccount %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <div class="row pt-3">
+        <div class="col-md-6">
+            <div class="p-3">
+                <h2>Вход или регистрация</h2>
+                <a class="button secondaryAction"
+                   href="{% url 'account_signup' %}">Зарегистрироваться</a>
+                <form class="login" method="POST" action="{% url 'account_login' %}">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                    {% endif %}
+                    <a class="btn btn-default"
+                       href="{% url 'account_reset_password' %}">Забыли пароль?</a>
+                    <button class="btn btn-primary" type="submit">Войти</button>
+                </form>
+
+                <div class="pt-5">через аккаунт социальной сети</div>
+                {% get_providers as socialaccount_providers %}
+                {% if socialaccount_providers %}
+                    <p>{% blocktrans with site.name as site_name %}
+                        Please sign in with one
+                        of your existing third party accounts. Or,
+                        <a href="{{ signup_url }}">sign up</a>
+                        for a {{ site_name }} account and sign in below:
+                    {% endblocktrans %}</p>
+
+                    <div class="socialaccount_ballot">
+                        <ul class="socialaccount_providers">
+                            {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                        </ul>
+                        <div class="login-or">{% trans 'or' %}</div>
+                    </div>
+                    {% include "socialaccount/snippets/login_extra.html" %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="m-3">
+                <h3>Оформить заказ как гость</h3>
+                <p>Получить Бонусные рубли вы сможете при оформлении заказа как авторизованный пользователь.</p>
+                <a class="btn-danger" href="{% url 'cart:checkout' %}">Продолжить без автоизиции</a>
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}

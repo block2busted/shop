@@ -11,6 +11,7 @@ class OrderProduct(models.Model):
     is_ordered = models.BooleanField(default=False)
     quantity = models.IntegerField(default=1)
 
+
     def __str__(self):
         return f'Заказ №{self.order_pk}: {self.product.name} x {self.quantity}'
 
@@ -83,6 +84,10 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+
+    class Meta:
+        verbose_name = 'Купон'
+        verbose_name_plural = 'Купоны'
 
 
 class Order(models.Model):

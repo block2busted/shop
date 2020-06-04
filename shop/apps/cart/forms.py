@@ -1,6 +1,13 @@
 from django import forms
 
 
+PAYMENT_CHOICES = (
+    ('H', 'При получении'),
+    ('R', 'Robokassa'),
+    ('S', 'Stripe'),
+)
+
+
 class CheckoutForm(forms.Form):
     city = forms.CharField(widget=forms.TextInput(attrs={
         "class": "form-control",
@@ -38,6 +45,7 @@ class CheckoutForm(forms.Form):
         'placeholder': 'Email',
         'autocomplete': 'off',
     }))
+    payment_option = forms.ChoiceField(widget=forms.RadioSelect, choices=PAYMENT_CHOICES)
 
 
 class CouponForm(forms.Form):

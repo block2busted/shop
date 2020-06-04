@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load catalog_tags %}
-
+{% load static %}
 {% block content %}
     <div class="row">
         breadcrums
@@ -26,10 +26,12 @@
                     {% if product in request.user.order %}
                         <a class="text-muted" href="{% url 'cart:cart' %}">Перейти в корзину</a>
                     {% else %}
-                        <a class="alert-danger btn-ls" href="{{ product.get_add_to_cart_url }}">
+                        <a id="add-to-cart" class="alert-danger btn-ls"
+                           href="{% url 'cart:add-to-cart' product.slug %}">
                             Добавить в корзину
                         </a>
                     {% endif %}
+
                 </div>
             </div>
         </div>
@@ -66,5 +68,13 @@
         </div>
     </div>
 
+
+
+
+{% endblock %}
+
+{% block javascript %}
+
+    <script src="{% static 'js/add_to_cart.js' %}"></script>
 
 {% endblock %}

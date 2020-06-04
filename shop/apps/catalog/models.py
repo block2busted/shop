@@ -21,6 +21,10 @@ class Category(MPTTModel):
         self.slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
 
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
 
 class Brand(models.Model):
     name = models.CharField(max_length=100, unique=True, help_text='Название')

@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import sys
+import json
+
+with open('/Users/blockbusted/PycharmProjects/config_shop_file.json') as config_file:
+    config = json.load(config_file)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -49,6 +53,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'mptt',
     'crispy_forms',
+    'robokassa'
 ]
 
 MIDDLEWARE = [
@@ -155,6 +160,12 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 
+EMAIL_HOST_USER = config['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = config['EMAIL_HOST_PASSWORD']
 
-STRIPE_SECRET_KEY = 'sk_test_teUHDjvwlZ8gc1nJkfWZGlXS00r8TJf3fD'
-STRIPE_PUBLISHABLE_KEY = 'pk_test_1pzWptqK4FTrrXwoEKtyFlPh00DCjugeoA'
+STRIPE_SECRET_KEY = config['STRIPE_SECRET_KEY']
+STRIPE_PUBLISHABLE_KEY = config['STRIPE_PUBLISHABLE_KEY']
+
+
+ROBOKASSA_LOGIN = config['ROBOKASSA_LOGIN']
+ROBOKASSA_PASSWORD1 = config['ROBOKASSA_PASSWORD1']

@@ -26,6 +26,7 @@ urlpatterns = [
     path('cart/', include('cart.urls')),
     path('accounts/', include('allauth.urls')),
     path('search-results', SearchResultsView.as_view(), name='search-results'),
+    path('robokassa/', include('robokassa.urls')),
 ]
 
 if settings.DEBUG:
