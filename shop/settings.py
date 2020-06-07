@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'mptt',
     'crispy_forms',
-    'robokassa'
+    'robokassa',
 ]
 
 MIDDLEWARE = [
@@ -166,6 +166,6 @@ EMAIL_HOST_PASSWORD = config['EMAIL_HOST_PASSWORD']
 STRIPE_SECRET_KEY = config['STRIPE_SECRET_KEY']
 STRIPE_PUBLISHABLE_KEY = config['STRIPE_PUBLISHABLE_KEY']
 
-
 ROBOKASSA_LOGIN = config['ROBOKASSA_LOGIN']
 ROBOKASSA_PASSWORD1 = config['ROBOKASSA_PASSWORD1']
+

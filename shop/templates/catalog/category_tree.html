@@ -1,28 +1,31 @@
 {% load mptt_tags %}
 
-<nav class="nav navbar-nav"> <!-- nav-tabs -->
-    <ul class="categories-block"> <!-- list-group flex-md-row -->
-        {% recursetree categories %}
-            <li {% if node.is_root_node %}class="dropdown btn"
-                {% elif not node.is_leaf_node and node.is_child_node %}class="btn"{% endif %}>
-                <div {% if node.is_root_node %}class="btn dropdown-toggle" type="button"
-                     id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                     aria-expanded="false"{% else %}class="dropdown-item"{% endif %}>
-                    <a {% if not node.is_leaf_node %}href="{% url 'catalog:category-detail' node.slug %}"
-                       {% else %}href="{% url 'catalog:product-list' node.slug %}"{% endif %}>
-                        {{ node.name }}
-                    </a>
-                </div>
-                {% if not node.is_leaf_node %}
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        {{ children }}
-                    </ul>
-                {% elif node.is_child_node %}
-                {% endif %}
-            </li>
-        {% endrecursetree %}
-    </ul>
-</nav>
+<div class="container">
+    <nav class="nav navbar-nav"> <!-- nav-tabs -->
+        <ul class="categories-block"><!-- list-group flex-md-row -->
+            <div class="row">
+                {% recursetree categories %}
+                    <li {% if node.is_root_node %} class="dropdown btn"
+                                                   {% elif not node.is_leaf_node and node.is_child_node %}class="btn"{% endif %}>
+                        <button {% if node.is_root_node %}class="btn dropdown-toggle" type="button"
+                             id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                             aria-expanded="false"{% else %}class="dropdown-item"{% endif %}>
+                            <a {% if not node.is_leaf_node %}href="{% url 'catalog:category-detail' node.slug %}"
+                               {% else %}href="{% url 'catalog:product-list' node.slug %}"{% endif %}>
+                                {{ node.name }}
+                            </a>
+                        </button>
+                        {% if not node.is_leaf_node %}
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                {{ children }}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endrecursetree %}
+            </div>
+        </ul>
+    </nav>
+</div>
 
 
 <script type="text/javascript">

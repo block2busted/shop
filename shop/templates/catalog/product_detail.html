@@ -53,7 +53,18 @@
             <div class="tab-pane container active" id="home">
                 {{ product.description }}
             </div>
-            <div class="tab-pane container fade" id="menu1">Тут нужно будет прям железно добавить динамичесие характеристики!</div>
+            <div class="tab-pane container fade" id="menu1">
+                <div>Характеристики:</div>
+
+                <table>
+                    {% for key,value in product.attributes.items %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
             <div class="tab-pane container fade" id="menu2">
                 {% if review_list %}
                     {% for review in review_list %}

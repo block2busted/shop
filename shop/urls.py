@@ -19,6 +19,8 @@ from catalog.views import IndexView, SearchResultsView
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', IndexView.as_view(), name='home'),

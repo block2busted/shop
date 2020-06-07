@@ -65,4 +65,7 @@ ul.breadcrumb li a:hover {
 /* Stripe CSS */
 
 
+.hyperens {
+  hyphens: auto;
+}
 

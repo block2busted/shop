@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from mptt.fields import TreeManyToManyField
 from pytils.translit import slugify
 from mptt.models import MPTTModel, TreeForeignKey
+from django.contrib.postgres.fields import JSONField
 
 
 class Category(MPTTModel):
@@ -10,6 +12,7 @@ class Category(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     slug = models.SlugField(unique=True, max_length=100, blank=True)
     photo = models.ImageField('Фото', default='default.jpg', blank=True, null=True)
+    attributes = JSONField(default=dict, help_text='Характеристики')
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -41,20 +44,25 @@ class Brand(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=55, unique=True, help_text='Название')
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, blank=True, null=True)
-    category = TreeManyToManyField(Category, default=None, blank=True)
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, blank=True, null=True, help_text='Бренд')
+    category = TreeForeignKey(Category, on_delete=models.SET_NULL, default=None, blank=True, null=True, help_text='Категория')
     description = models.TextField(help_text='Описание')
     price = models.IntegerField('Цена')
-    discount_price = models.IntegerField('Цена со скидкой', blank=True, null=True)
+    discount_price = models.IntegerField('Цена со скидкой', blank=True, null=True, help_text='Цена со скидкой')
     photo = models.ImageField('Фото', default="default.jpg", blank=True, null=True)
     in_stock = models.BooleanField(default=True, help_text='Наличие')
     slug = models.SlugField(unique=True, max_length=100, blank=True)
+    attributes = JSONField(default=dict, help_text='Характеристики', blank=True)
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
+        print(self.attributes)
+        #if self.attributes == dict:
+        if len(str(self.attributes)) <= 2:
+            self.attributes = self.category.attributes
         super(Product, self).save(*args, **kwargs)
 
     def get_absolute_url(self):

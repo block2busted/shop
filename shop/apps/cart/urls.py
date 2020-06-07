@@ -10,8 +10,7 @@ from .views import add_to_cart, \
     PaymentSuccessView, \
     PaymentRobokassaView, \
     YandexPaymentView, \
-    login_or_guest, \
-    pay_robokassa
+    login_or_guest
 
 
 app_name = 'cart'
@@ -29,5 +28,4 @@ urlpatterns = [
     path('authentitication', login_or_guest, name='authentitication'),
     path('payment-yandex', YandexPaymentView.as_view(), name='payment-yandex'),
 
-    path('robokassa', pay_robokassa, name='payment-robokassa')
 ]

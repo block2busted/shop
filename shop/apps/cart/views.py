@@ -454,26 +454,6 @@ class StripePaymentView(View):
             return redirect('/')
 
 
-def pay_robokassa(request):
-    order_pk = request.session['order_pk']
-    order = Order.objects.get(pk=order_pk, is_ordered=False)
-    amount = order.get_total_order_price()
-    print(amount)
-    form = RobokassaForm(initial={
-        'OutSum': amount,
-        'InvId': order_pk,
-        'Desc': 'Тестовая оплата',
-        'IsTest': 1,
-        'MerchantLogin': 'BlockbustedShop',
-        'Pass1': 'mQ48kJUg2lQUN5Nh0aEh',
-        'SignatureValue': 'hvrru8o2WOIY19qt7xWo',
-    })
-    context = {
-        'form': form,
-    }
-    return render(request, 'cart/payment_robokassa.html', context)
-
-
 class PaymentRobokassaView(View):
     def get(self, *args, **kwargs):
         order_pk = self.request.session['order_pk']
