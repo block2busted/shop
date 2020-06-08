@@ -233,8 +233,10 @@ class CartView(View):
             except:
                 order_pk = None
             order = Order.objects.get(pk=order_pk, is_ordered=False)
+            order_product = OrderProduct.objects.filter(order_pk=order_pk, is_ordered=False).order_by('-created')
             context = {
                 'order': order,
+                'order_product': order_product
             }
             return render(
                 self.request,

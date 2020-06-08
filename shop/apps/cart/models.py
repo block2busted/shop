@@ -10,7 +10,7 @@ class OrderProduct(models.Model):
     order_pk = models.IntegerField(blank=True, null=True, help_text='В каком заказе')
     is_ordered = models.BooleanField(default=False)
     quantity = models.IntegerField(default=1)
-
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         return f'Заказ №{self.order_pk}: {self.product.name} x {self.quantity}'
