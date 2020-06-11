@@ -12,6 +12,7 @@ class Category(MPTTModel):
     slug = models.SlugField(unique=True, max_length=100, blank=True)
     photo = models.ImageField('Фото', default='default.jpg', blank=True, null=True)
     attributes = JSONField(default=dict, help_text='Характеристики')
+    filters = JSONField(default=dict, help_text='Фильтр по динамичесим атрибутам')
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -58,7 +59,7 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        print(self.attributes)
+        #print(self.attributes)
         #if self.attributes == dict:
         if len(str(self.attributes)) <= 2:
             self.attributes = self.category.attributes
@@ -80,3 +81,4 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
+        #ordering = ['-price']

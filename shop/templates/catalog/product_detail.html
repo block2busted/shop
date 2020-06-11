@@ -3,7 +3,7 @@
 {% load static %}
 {% block content %}
     <div class="row">
-        breadcrums
+        {% include 'catalog/breadcrumb.html' %}
     </div>
     <div class="product-content">
         <div class="row">
@@ -56,20 +56,40 @@
             <div class="tab-pane container fade" id="menu1">
                 <div class="row">
                     <div class="col-4">
-
+                        <!--
+                        <table>
+                            {% for key,value in product.attributes.items %}
+                                <tr>
+                                    {% if key in value %}
+                                        <td>
+                                            <h6>{{ key }}</h6>
+                                        </td>
+                                        {% for key,value in value.items %}
+                                            <tr>
+                                                <td class="pr-2">{{ key }}</td>
+                                                <td class="pl-2">{{ value }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <td>{{ key }}</td>
+                                        <td>{{ value }}</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </table> -->
                     </div>
                     <div class="col-8">
                         <table>
                             {% for key,value in product.attributes.items %}
                                 <tr>
-                                    <td class="mt-2">
+                                    <td>
                                         <h6>{{ key }}</h6>
                                     </td>
                                     <tr>
                                         {% for key,value in value.items %}
                                             <tr>
-                                                <td>{{ key }}</td>
-                                                <td>{{ value }}</td>
+                                                <td class="pr-2">{{ key }}</td>
+                                                <td class="pl-2">{{ value }}</td>
                                             </tr>
                                         {% endfor %}
                                     </tr>

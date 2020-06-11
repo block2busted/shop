@@ -1,8 +1,9 @@
+from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView
 
-from .models import Product, Category
+from .models import Product, Category, Brand
 
 
 class IndexView(TemplateView):
@@ -55,9 +56,28 @@ class ProductListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(ProductListView, self).get_context_data()
         category = Category.objects.get(slug=self.kwargs['slug'])
-        product_list = Product.objects.filter(category__slug=self.kwargs['slug'])
-        context['product_list'] = product_list
-        context['category'] = category
+        context['category'] = Category.objects.get(slug=self.kwargs['slug'])
+        context['brand_list'] = Brand.objects.all().order_by('name')
+        product_list = Product.objects.filter(category__slug=self.kwargs['slug']).order_by('-price')
+
+        if self.request.GET.get('brand'):
+            brand_filter = self.request.GET.get('brand')
+            product_list = product_list.filter(brand__name=brand_filter)
+        # Фасетный филтр
+        filter_list = []
+        for key, value in category.filters.items():
+            filter_list.append(key)
+        #print(filter_list)
+        for attribute in filter_list:
+            if self.request.GET.get(attribute):
+                value = self.request.GET.get(attribute)
+                #print(value)
+                #print(attribute)
+                facet_list_type = ["\""+attribute+"\":", value]
+                facet_str_type = " ".join(facet_list_type)
+                product_list = product_list.filter(Q(attributes__icontains=facet_str_type))
+
+            context['product_list'] = product_list
         return context
 
 
@@ -73,7 +93,9 @@ class ProductDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(ProductDetailView, self).get_context_data()
         product = get_object_or_404(Product, slug=self.object.slug)
+        category = Category.objects.get(slug=self.object.category.slug)
         context['product'] = product
+        context['category'] = category
         return context
 
 
@@ -96,5 +118,3 @@ class SearchResultsView(ListView):
         context['product_list'] = product_list
         context['total_products'] = product_list.count()
         return context
-
-
