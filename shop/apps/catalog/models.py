@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from mptt.fields import TreeManyToManyField
@@ -82,3 +83,33 @@ class Product(models.Model):
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
         #ordering = ['-price']
+
+
+RATING_CHOISE = (
+    ('1 звезда', 'Ужасно'),
+    ('2 звезды', 'Не нравится'),
+    ('3 звезды', 'Нормально'),
+    ('4 звезды', 'Хорошо'),
+    ('5 звёзд', 'Великолепно')
+)
+
+
+RECOMEND_CHOICE = (
+    ('Y', 'Да'),
+    ('N', 'Нет')
+)
+
+
+class Review(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, help_text='Автор отзыва')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, help_text='Товар')
+    rating = models.FloatField()
+    created = models.DateTimeField(auto_now_add=True)
+    is_recommend = models.BooleanField(default=False)
+    plus = models.CharField(default='', max_length=255, blank=True, null=True, help_text='Плюсы')
+    minus = models.CharField(default='', max_length=255, blank=True, null=True, help_text='Минусы')
+    content = models.TextField(default='', max_length=400,help_text='Отзыв')
+    photo = models.ImageField(upload_to='catalog/review', blank=True, null=True)
+
+    def get_absolute_url(self):
+        return reverse('catalog:product-detail', kwargs={'slug': self.product.slug})

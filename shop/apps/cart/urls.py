@@ -10,7 +10,8 @@ from .views import add_to_cart, \
     PaymentSuccessView, \
     PaymentRobokassaView, \
     YandexPaymentView, \
-    login_or_guest
+    login_or_guest, \
+ YandexNotifications
 
 
 app_name = 'cart'
@@ -27,5 +28,5 @@ urlpatterns = [
     path('payment-success', PaymentSuccessView.as_view(), name='payment-success'),
     path('authentitication', login_or_guest, name='authentitication'),
     path('payment-yandex', YandexPaymentView.as_view(), name='payment-yandex'),
-
+    path('payment-yandex/notifications', YandexNotifications.as_view(), name='payment-yandex-notifications')
 ]

@@ -1,9 +1,10 @@
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
-from django.shortcuts import render, get_object_or_404
-from django.views.generic import TemplateView, ListView, DetailView
-
-from .models import Product, Category, Brand
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import TemplateView, ListView, DetailView, CreateView
+from .forms import ReviewForm
+from .models import Product, Category, Brand, Review
 
 
 class IndexView(TemplateView):
@@ -73,8 +74,8 @@ class ProductListView(ListView):
                 value = self.request.GET.get(attribute)
                 #print(value)
                 #print(attribute)
-                facet_list_type = ["\""+attribute+"\":", value]
-                facet_str_type = " ".join(facet_list_type)
+                facet_list_type = ["\""+attribute+"\": \"" + value+"\""]
+                facet_str_type = "".join(facet_list_type)
                 product_list = product_list.filter(Q(attributes__icontains=facet_str_type))
 
             context['product_list'] = product_list
@@ -94,9 +95,21 @@ class ProductDetailView(DetailView):
         context = super(ProductDetailView, self).get_context_data()
         product = get_object_or_404(Product, slug=self.object.slug)
         category = Category.objects.get(slug=self.object.category.slug)
+        review_form = ReviewForm(initial={'author': self.request.user, 'product': product})
+        review_list = Review.objects.filter(product=self.object)
         context['product'] = product
         context['category'] = category
+        context['review_form'] = review_form
+        context['review_list'] = review_list
         return context
+
+    def form_valid(self, form):
+        pass
+
+
+class ReviewCreateView(CreateView):
+    model = Review
+    form_class = ReviewForm
 
 
 class SearchResultsView(ListView):

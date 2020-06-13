@@ -3,7 +3,7 @@ from django import forms
 
 PAYMENT_CHOICES = (
     ('H', 'При получении'),
-    ('R', 'Robokassa'),
+    ('Y', 'Яндекс.Касса'),
     ('S', 'Stripe'),
 )
 

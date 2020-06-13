@@ -5,16 +5,18 @@ from django.contrib import messages
 from catalog.models import Product
 from django.template.loader import render_to_string
 from django.views.generic.base import View, TemplateView
+from requests import Response
 from robokassa.forms import RobokassaForm
 from allauth.account.forms import LoginForm
-from .models import Order, OrderProduct, Addressee, ShippingAddress, Payment, Coupon
+from .models import Order, OrderProduct, Addressee, ShippingAddress, OrderPayment, Coupon
 from .forms import CheckoutForm, CouponForm
 from django.conf import settings
 import stripe
 from yandex_checkout import Configuration, Payment
 import uuid
+import json
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 
 def add_to_cart(request, slug):
@@ -374,8 +376,6 @@ class CheckoutView(View):
                     return redirect('cart:payment-stripe')
                 elif payment_option == 'H':
                     return redirect('cart:payment-success')
-                elif payment_option == 'R':
-                    return redirect('cart:payment-robokassa')
                 elif payment_option == 'Y':
                     return redirect('cart:payment-yandex')
         except ObjectDoesNotExist:
@@ -406,7 +406,7 @@ class StripePaymentView(View):
                 source=token,
             )
             # Создаём payment
-            payment = Payment()
+            payment = OrderPayment()
             payment.stripe_charge_id = charge['id']
             payment.order_pk = order_pk
             if self.request.user.is_authenticated:
@@ -501,4 +501,53 @@ class PaymentSuccessView(TemplateView):
 
 
 class YandexPaymentView(View):
-    pass
+    def get(self, request):
+        with open('/Users/blockbusted/PycharmProjects/config_shop_file.json') as config_file:
+            config = json.load(config_file)
+        Configuration.account_id = config['YANDEX_SHOP_ID']
+        Configuration.secret_key = config['YANDEX_SECRET_KEY']
+
+        order_pk = self.request.session['order_pk']
+        order = Order.objects.get(pk=order_pk)
+        amount = order.get_total_order_price()
+        idempotence_key = str(uuid.uuid4())
+        payment = Payment.create({
+            #"payment_token": idempotence_key,
+            "amount": {
+                "value": 1,
+                "currency": "RUB"
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": "cart:payment-yandex-notifications"
+            },
+            "description": "Заказ №"+str(order_pk)
+        })
+
+        order_payment = OrderPayment()
+        order_payment.order_pk = order_pk
+        if self.request.user.is_authenticated:
+            order_payment.user = self.request.user
+        order_payment.amount = amount
+        order_payment.save()
+        return HttpResponseRedirect(payment.confirmation.confirmation_url
+)
+
+
+class YandexNotifications(View):
+    def get(self, request):
+        order_pk = request.session['order_pk']
+        order_payment = OrderPayment.objects.get(order_pk=order_pk)
+        payment_id = request.data['object']['id']
+        Payment.capture(payment_id)
+        print('ee')
+        order = Order.objects.get(pk=order_pk)
+        order_products = order.products.all()
+        order_products.update(is_ordered=True)
+        for product in order_products:
+            product.save()
+        order.is_ordered = True
+        #order.payment = payment
+        order.payment.charge_id = payment_id
+        order.save()
+        return Response(status=200)

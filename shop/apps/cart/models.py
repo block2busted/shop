@@ -63,11 +63,11 @@ class Addressee(models.Model):
         verbose_name_plural = 'Адресаты'
 
 
-class Payment(models.Model):
-    stripe_charge_id = models.CharField(max_length=50)
+class OrderPayment(models.Model):
+    charge_id = models.CharField(max_length=60, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     order_pk = models.IntegerField()
-    amount = models.FileField()
+    amount = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -99,7 +99,7 @@ class Order(models.Model):
                                          help_text='Адрес доставки')
     addressee = models.ForeignKey(Addressee, on_delete=models.SET_NULL, blank=True, null=True, default='',
                                   help_text='Адресат')
-    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True)
+    payment = models.ForeignKey(OrderPayment, on_delete=models.SET_NULL, blank=True, null=True)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.postgres.fields import JSONField
-from .models import Product, Category, Brand
+from .models import Product, Category, Brand, Review
 from mptt.admin import MPTTModelAdmin, DraggableMPTTAdmin, TreeRelatedFieldListFilter
 from .utils import ReadableJSONFormField
 
@@ -22,3 +22,8 @@ class CategoryAdmin(DraggableMPTTAdmin):
     formfield_overrides = {
         JSONField: {'form_class': ReadableJSONFormField},
     }
+
+
+@admin.register(Review)
+class RatingAdmin(admin.ModelAdmin):
+    pass

@@ -12,52 +12,7 @@
                 {% include 'catalog/filter_list.html' %}
             </div>
             <div class="col-9">
-                {% if product_list %}
-                    <div class="row">
-                        {% for product in product_list %}
-                            <div class="col-md-4">
-                                <div class="product-list-item">
-                                    <div class="row text-center">
-                                        <img src="{{ product.photo.url }}" alt="product-photo" width="300px"
-                                             height="100%">
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-10">
-                                            <a href="{% url 'catalog:product-detail' product.slug %}">{{ product.name }}</a>
-                                            <div>
-                                                {% if product.discount_price %}
-                                                    <div class="text-muted small">
-                                                        <del>{{ product.price }} ₽</del>
-                                                        -{{ product.get_discount }}</div>
-                                                    <div>{{ product.discount_price }} ₽</div>
-                                                {% else %}
-                                                    {{ product.price }} ₽
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        <div class="col-2">
-                                            {% if product in request.user.order %}
-                                                <a class="text-muted" href="{% url 'cart:cart' %}">Перейти в корзину</a>
-                                            {% else %}
-                                                <a id="add-to-cart" class="alert-danger btn-ls"
-                                                   href="{% url 'cart:add-to-cart' product.slug %}">
-                                                    <i class="fas fa-shopping-cart"></i>
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <div class="row">
-                        <div class="mx-auto pt-3">
-                            {% include 'catalog/pagination.html' %}
-                        </div>
-                    </div>
-                {% else %}
-                    Где-то косячок с товарами или их еще нет
-                {% endif %}
+                {% include 'catalog/product_list_items.html' %}
             </div>
         </div>
     </div>

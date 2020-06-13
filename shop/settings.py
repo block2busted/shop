@@ -52,8 +52,9 @@ INSTALLED_APPS = [
     'pytils',
     'bootstrap4',
     'mptt',
-    'crispy_forms',
     'robokassa',
+    'shop.apps.accounts',
+    'yandex_checkout'
 ]
 
 MIDDLEWARE = [
