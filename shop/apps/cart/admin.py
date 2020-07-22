@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OrderProduct, Order, ShippingAddress, Addressee, OrderPayment, Coupon
+from .models import OrderProduct, Order, ShippingAddress, Addressee, OrderPayment, Coupon#, Customer
 # Register your models here.
 
 
@@ -9,3 +9,4 @@ admin.site.register(ShippingAddress)
 admin.site.register(Addressee)
 admin.site.register(OrderPayment)
 admin.site.register(Coupon)
+#admin.site.register(Customer)

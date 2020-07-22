@@ -1,10 +1,10 @@
-from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from mptt.fields import TreeManyToManyField
 from pytils.translit import slugify
 from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.postgres.fields import JSONField
+from django.conf import settings
 
 
 class Category(MPTTModel):
@@ -101,7 +101,7 @@ RECOMEND_CHOICE = (
 
 
 class Review(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, help_text='Автор отзыва')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text='Автор отзыва')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, help_text='Товар')
     rating = models.FloatField()
     created = models.DateTimeField(auto_now_add=True)

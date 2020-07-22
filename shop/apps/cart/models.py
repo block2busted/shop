@@ -1,12 +1,11 @@
 from django.db import models
 from django.conf import settings
 from catalog.models import Product
-from django.contrib.auth.models import User
 
 
 class OrderProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True)
     order_pk = models.IntegerField(blank=True, null=True, help_text='В каком заказе')
     is_ordered = models.BooleanField(default=False)
     quantity = models.IntegerField(default=1)
@@ -32,7 +31,7 @@ class OrderProduct(models.Model):
 
 
 class ShippingAddress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True)
     city = models.CharField(max_length=100, help_text='Город')
     street = models.CharField(max_length=100, help_text='Улица')
     house = models.CharField(max_length=100, help_text='Дома')
@@ -48,7 +47,7 @@ class ShippingAddress(models.Model):
 
 
 class Addressee(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True)
     first_name = models.CharField(max_length=100, help_text='Имя')
     last_name = models.CharField(max_length=100, help_text='Фамилия')
     phone = models.CharField(max_length=100, help_text='Телефон')
@@ -65,7 +64,7 @@ class Addressee(models.Model):
 
 class OrderPayment(models.Model):
     charge_id = models.CharField(max_length=60, null=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
     order_pk = models.IntegerField()
     amount = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -91,14 +90,14 @@ class Coupon(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
     products = models.ManyToManyField(OrderProduct)
     created = models.DateTimeField(auto_now_add=True)
     is_ordered = models.BooleanField(default=False)
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, blank=True, null=True, default='',
                                          help_text='Адрес доставки')
     addressee = models.ForeignKey(Addressee, on_delete=models.SET_NULL, blank=True, null=True, default='',
-                                  help_text='Адресат')
+                                  help_text='Получатель заказа')
     payment = models.ForeignKey(OrderPayment, on_delete=models.SET_NULL, blank=True, null=True)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -122,3 +121,5 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
+
+

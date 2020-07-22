@@ -10,173 +10,88 @@ from robokassa.forms import RobokassaForm
 from allauth.account.forms import LoginForm
 from .models import Order, OrderProduct, Addressee, ShippingAddress, OrderPayment, Coupon
 from .forms import CheckoutForm, CouponForm
-from django.conf import settings
 import stripe
 from yandex_checkout import Configuration, Payment
 import uuid
 import json
 
+from .services import get_or_create_order_object, \
+    _add_product_to_cart, get_order_object, \
+    get_order_pk_from_session, \
+    _remove_product_from_cart, _reduce_product_quantity, _increase_product_quantity
 
 
-
-def add_to_cart(request, slug):
-    product = get_object_or_404(Product, slug=slug)
-    if request.is_ajax():
-        if request.user.is_authenticated:
-            order_queryset = Order.objects.filter(
-                user=request.user,
-                is_ordered=False
-            )
-            if order_queryset.exists():
-                order = order_queryset[0]
-                request.session['order_pk'] = order.pk
-                order_pk = request.session['order_pk']
-                order_product, created = OrderProduct.objects.get_or_create(
-                    product=product,
-                    user=request.user,
-                    order_pk=order_pk,
-                    is_ordered=False
-                )
-                if order.products.filter(product__slug=product.slug).exists():
-                    return redirect('catalog:product-detail', slug)
-                else:
-                    messages.info(request, "Вы добавили товар в корзину.")
-                    order.products.add(order_product)
-                    data = {
-                        'reload_cart': render_to_string('cart/cart_detail.html', {
-                            'request': request,
-                        })
-                    }
-                    return JsonResponse(data)
-            else:
-                order = Order.objects.create(user=request.user)
-                order_pk = order.pk
-                request.session['order_pk'] = order.pk
-                order_product, created = OrderProduct.objects.get_or_create(
-                    product=product,
-                    user=request.user,
-                    order_pk=order_pk,
-                    is_ordered=False
-                )
-                order.products.add(order_product)
-                messages.info(request, "Вы добавили товар в корзину.")
-                data = {
-                    'reload_cart': render_to_string('cart/cart_detail.html', {
-                        'request': request,
-                    })
-                }
-                return JsonResponse(data)
-        else:
-            try:
-                order_pk = request.session['order_pk']
-                order = Order.objects.get(pk=order_pk)
-            except:
-                order = Order.objects.create()
-                request.session['order_pk'] = order.pk
-                order_pk = order.pk
-            order_product, created = OrderProduct.objects.get_or_create(
-                product=product,
-                order_pk=order_pk,
-                is_ordered=False
-            )
-            if order.products.filter(product__slug=product.slug).exists():
-                data = {
-                    'reload_cart': render_to_string('cart/cart_detail.html', {
-                        'request': request,
-                    })
-                }
-                return JsonResponse(data)
-            else:
-                messages.info(request, "Вы добавили товар в корзину.")
-                order.products.add(order_product)
-                data = {
-                    'reload_cart': render_to_string('cart/cart_detail.html', {
-                        'request': request,
-                    })
-                }
-                return JsonResponse(data)
-
-
-def remove_from_cart(request, slug):
+def add_product_to_cart(request, slug):
+    """Добавляет товар в корзину"""
     product = get_object_or_404(Product, slug=slug)
     if request.user.is_authenticated:
-        order_queryset = Order.objects.filter(
-            user=request.user,
-            is_ordered=False
-        )
-        if order_queryset.exists():
-            order = order_queryset[0]
-            if order.products.filter(product__slug=product.slug).exists():
-                order_product = OrderProduct.objects.filter(
-                    product=product,
-                    user=request.user,
-                    is_ordered=False
-                )[0]
-                order_product.delete()
-                return redirect('cart:cart')
-            else:
-                messages.info(request, "Товар не добавлен в корзину.")
-                return redirect('cart:cart')
-        else:
-            messages.info(request, "У вас нет активных заказов.")
-            return redirect('cart:cart')
+        user = request.user
     else:
-        try:
-            order_pk = request.session['order_pk']
-            # order = Order.objects.get(pk=order_pk)
-        except:
-            order_pk = None
-        order = Order.objects.get(pk=order_pk)
-        if order.products.filter(product__slug=product.slug).exists():
-            order_product = OrderProduct.objects.filter(
-                product=product,
-                order_pk=order_pk,
-                is_ordered=False
-            )[0]
-            order_product.delete()
-            return redirect('cart:cart')
-        else:
-            messages.info(request, "Товар не добавлен в корзину.")
-            return redirect('cart:cart')
+        user = None
+    order, order_pk = get_or_create_order_object(
+        request=request,
+        user=user,
+        is_ordered=False
+    )
+    _add_product_to_cart(
+        product=product,
+        user=user,
+        order_pk=order_pk,
+        is_ordered=False,
+        order=order
+    )
+    data = {
+        'reload_cart': render_to_string('cart/cart_detail.html', {
+            'request': request,
+        })
+    }
+    return JsonResponse(data)
 
 
-def reduse_amount(request, slug):
+def remove_product_from_cart(request, slug):
+    """Удаляем товар из корзины"""
     product = get_object_or_404(Product, slug=slug)
     if request.user.is_authenticated:
-        order_queryset = Order.objects.filter(
-            user=request.user,
-            is_ordered=False
-        )
-        if order_queryset.exists():
-            order = order_queryset[0]
-            if order.products.filter(product__slug=product.slug).exists():
-                order_product = OrderProduct.objects.filter(
-                    product=product,
-                    user=request.user,
-                    is_ordered=False
-                )[0]
-                if order_product.quantity > 1:
-                    order_product.quantity -= 1
-                    order_product.save()
-            else:
-                return redirect('cart:cart')
-        else:
-            messages.info(request, "У вас нет активных заказов.")
-            return redirect('cart:cart')
+        user = request.user
     else:
-        order_pk = request.session['order_pk']
-        order = Order.objects.get(pk=order_pk, is_ordered=False)
-        if order.products.filter(product__slug=product.slug).exists():
-            order_product = OrderProduct.objects.filter(
-                product=product,
-                order_pk=order_pk,
-                is_ordered=False
-            )[0]
-            if order_product.quantity > 1:
-                order_product.quantity -= 1
-                order_product.save()
-        else:
-            return redirect('cart:cart')
+        user = None
+    order_pk = get_order_pk_from_session(request)
+    _remove_product_from_cart(
+        product=product,
+        user=user,
+        order_pk=order_pk,
+        is_ordered=False
+    )
+    return redirect('cart:cart')
+
+
+def reduce_amount(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    if request.user.is_authenticated:
+        user = request.user
+    else:
+        user = None
+    _reduce_product_quantity(
+        product,
+        user,
+        order_pk=get_order_pk_from_session(request),
+        is_ordered=False
+    )
+    return redirect('cart:cart')
+
+
+def increase_amount(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    if request.user.is_authenticated:
+        user = request.user
+    else:
+        user = None
+    _increase_product_quantity(
+        product,
+        user,
+        order_pk=get_order_pk_from_session(request),
+        is_ordered=False
+    )
     return redirect('cart:cart')
 
 
@@ -186,45 +101,6 @@ def login_or_guest(request):
         'form': form
     }
     return render(request, 'cart/login_or_guest.html', context)
-
-
-def increase_amount(request, slug):
-    product = get_object_or_404(Product, slug=slug)
-    if request.user.is_authenticated:
-        order_queryset = Order.objects.filter(
-            user=request.user,
-            is_ordered=False
-        )
-        if order_queryset.exists():
-            order = order_queryset[0]
-            if order.products.filter(product__slug=product.slug).exists():
-                order_product = OrderProduct.objects.filter(
-                    product=product,
-                    user=request.user,
-                    is_ordered=False
-                )[0]
-                order_product.quantity += 1
-                order_product.save()
-            else:
-                return redirect('cart:cart')
-        else:
-            messages.info(request, "У вас нет активных заказов.")
-            return redirect('cart:cart')
-        return redirect('cart:cart')
-    else:
-        order_pk = request.session['order_pk']
-        order = Order.objects.get(pk=order_pk, is_ordered=False)
-        if order.products.filter(product__slug=product.slug).exists():
-            order_product = OrderProduct.objects.filter(
-                product=product,
-                order_pk=order_pk,
-                is_ordered=False
-            )[0]
-            order_product.quantity += 1
-            order_product.save()
-        else:
-            return redirect('cart:cart')
-    return redirect('cart:cart')
 
 
 class CartView(View):
@@ -512,7 +388,7 @@ class YandexPaymentView(View):
         amount = order.get_total_order_price()
         idempotence_key = str(uuid.uuid4())
         payment = Payment.create({
-            #"payment_token": idempotence_key,
+            #  "payment_token": idempotence_key,
             "amount": {
                 "value": 1,
                 "currency": "RUB"
@@ -530,8 +406,7 @@ class YandexPaymentView(View):
             order_payment.user = self.request.user
         order_payment.amount = amount
         order_payment.save()
-        return HttpResponseRedirect(payment.confirmation.confirmation_url
-)
+        return HttpResponseRedirect(payment.confirmation.confirmation_url)
 
 
 class YandexNotifications(View):
@@ -540,7 +415,6 @@ class YandexNotifications(View):
         order_payment = OrderPayment.objects.get(order_pk=order_pk)
         payment_id = request.data['object']['id']
         Payment.capture(payment_id)
-        print('ee')
         order = Order.objects.get(pk=order_pk)
         order_products = order.products.all()
         order_products.update(is_ordered=True)

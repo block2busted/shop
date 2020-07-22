@@ -92,11 +92,18 @@ WSGI_APPLICATION = 'shop.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
+'''
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'account.sqlite3'),
+    }
+}
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'shop_db',
+        'NAME': 'shop_database', #shop_database #shop_db
         'USER': 'postgres',
         'PASSWORD': '3576',
         'HOST': '127.0.0.1',
@@ -160,6 +167,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
+#AUTH_USER_MODEL = 'accounts.CustomUser'
+
 
 EMAIL_HOST_USER = config['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = config['EMAIL_HOST_PASSWORD']
